@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NOVA • Link Journey</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;overflow-x:hidden;font-family:Inter,system-ui,Arial;background:#070812;color:#fff}
+body:before{content:"";position:fixed;inset:0;z-index:-2;background:
+radial-gradient(circle at 15% 20%,#714bff35,transparent 28%),radial-gradient(circle at 85% 75%,#39f6c435,transparent 30%),linear-gradient(135deg,#070812,#15132b)}
+body:after{content:"";position:fixed;width:45vw;height:45vw;left:30%;top:25%;border:1px solid #ffffff0d;border-radius:50%;box-shadow:0 0 100px #6e5cff12;animation:spin 18s linear infinite;z-index:-1}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes float{50%{transform:translateY(-10px)}}@keyframes pop{from{opacity:0;transform:translateY(25px) scale(.94)}to{opacity:1;transform:none}}
+.top{padding:24px 6%;display:flex;justify-content:space-between;align-items:center}.logo{font-weight:900;letter-spacing:3px;font-size:20px}.logo i{color:#70f5c4;font-style:normal}
+.status{font-size:12px;color:#a7a5b7;border:1px solid #ffffff15;padding:8px 12px;border-radius:99px;background:#ffffff08}
+.wrap{width:min(1050px,92%);margin:20px auto 60px;text-align:center}.hero{animation:pop .8s ease both}
+.hero h1{font-size:clamp(38px,7vw,72px);line-height:.95;margin:20px 0 15px}.hero h1 span{background:linear-gradient(90deg,#70f5c4,#a995ff);-webkit-background-clip:text;color:transparent}
+.hero p{color:#aaa8ba;max-width:620px;margin:0 auto 30px;line-height:1.6}
+.boxes{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:30px 0}
+.box{height:170px;border:1px solid #ffffff18;border-radius:22px;background:linear-gradient(145deg,#ffffff12,#ffffff05);
+box-shadow:0 20px 55px #0005;display:flex;flex-direction:column;align-items:center;justify-content:center;
+cursor:pointer;position:relative;overflow:hidden;transition:.35s;animation:float 4s ease-in-out infinite}
+.box:nth-child(2){animation-delay:.3s}.box:nth-child(3){animation-delay:.6s}.box:nth-child(4){animation-delay:.9s}.box:nth-child(5){animation-delay:1.2s}
+.box:hover{transform:translateY(-10px) scale(1.03);border-color:#70f5c477;box-shadow:0 25px 70px #0008,0 0 30px #70f5c411}
+.icon{font-size:42px;margin-bottom:13px;filter:drop-shadow(0 8px 15px #000)}
+.box strong{font-size:16px}.box small{color:#9997aa;margin-top:5px}
+.panel{display:none;max-width:700px;margin:30px auto;padding:30px;border:1px solid #ffffff1d;border-radius:28px;background:#ffffff0b;backdrop-filter:blur(18px);animation:pop .5s ease}
+.panel.show{display:block}.panel h2{margin:0 0 8px}.panel p{color:#aaa8ba}.linkbtn{display:inline-block;padding:15px 24px;border-radius:13px;background:linear-gradient(90deg,#70f5c4,#a995ff);color:#080a12;text-decoration:none;font-weight:800;margin:10px}
+.back{background:#ffffff0c;color:#fff;border:1px solid #ffffff1d;padding:13px 20px;border-radius:12px;cursor:pointer}
+.uploads{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:20px}
+.upload{min-height:125px;border:1px dashed #ffffff30;border-radius:18px;background:#ffffff07;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;padding:10px}
+.upload input{display:none}.upload span{font-size:28px}.upload b{font-size:12px;margin-top:8px}.upload em{font-style:normal;color:#77758a;font-size:10px;text-align:center;margin-top:4px;word-break:break-all}
+.submit{margin-top:22px;padding:15px 28px;border:0;border-radius:13px;background:#70f5c4;color:#07100d;font-weight:900;cursor:pointer}
+.note{font-size:12px;color:#747286;margin-top:18px}
+#toast{position:fixed;left:50%;bottom:25px;transform:translate(-50%,20px);opacity:0;background:#151526;border:1px solid #ffffff20;padding:12px 18px;border-radius:12px;transition:.3s;z-index:20}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:800px){.boxes{grid-template-columns:repeat(2,1fr)}.uploads{grid-template-columns:repeat(2,1fr)}.box:last-child{grid-column:span 2}}
+@media(max-width:430px){.boxes{grid-template-columns:1fr 1fr}.box{height:145px}.uploads{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="top"><div class="logo">NOVA<i>°</i></div><div class="status">✦ Secure Journey</div></header>
+<main class="wrap">
+<section class="hero">
+<h1>Unlock your <span>journey.</span></h1>
+<p>Open each box and complete the five steps. After finishing, submit your name and screenshots below.</p>
+</section>
+
+<section class="boxes" id="boxes"></section>
+<section class="panel" id="panel"></section>
+
+<section class="panel show" id="finish">
+<h2>🎉 Journey Complete</h2>
+<p>Enter your name and upload the 5 screenshots.</p>
+<input id="userName" placeholder="Your name" style="width:min(420px,100%);padding:14px;border-radius:12px;border:1px solid #ffffff20;background:#ffffff0b;color:#fff;outline:0">
+<div class="uploads" id="uploads"></div>
+<button class="submit" onclick="sendSubmission()">Send Submission</button>
+<div class="note">For real public submissions, connect a backend/form endpoint in <b>config.js</b>.</div>
+</section>
+</main>
+<div id="toast"></div>
+<script>
+const CONFIG = {
+  // Put your 5 Monetag SmartLink URLs here.
+  links: [
+    "https://omg10.com/4/11942845",
+    "https://omg10.com/4/11942844",
+    "https://omg10.com/4/11942845",
+    "https://omg10.com/4/11942844",
+    "https://omg10.com/4/11942845"
+  ],
+  // Optional Formspree endpoint for receiving name + screenshots:
+  // "https://formspree.io/f/XXXXXXXX"
+  formEndpoint: ""
+};
+
+const boxes=document.getElementById("boxes"),panel=document.getElementById("panel"),finish=document.getElementById("finish");
+let opened=0;
+for(let i=1;i<=5;i++){
+ const b=document.createElement("div");b.className="box";b.innerHTML=`<div class="icon">🎁</div><strong>Link ${i}</strong><small>Open box</small>`;
+ b.onclick=()=>openBox(i);boxes.appendChild(b);
+}
+function openBox(i){
+ panel.innerHTML=`<h2>📦 Link ${i}</h2><p>Open the link, then return here for the next box.</p>
+ <a class="linkbtn" href="${CONFIG.links[i-1]}" target="_blank" rel="noopener">Open Link ${i} ↗</a>
+ <br><button class="back" onclick="closePanel()">← Back to boxes</button>`;
+ panel.classList.add("show");finish.style.display="none";
+ opened=Math.max(opened,i);
+}
+function closePanel(){panel.classList.remove("show");finish.style.display="block";window.scrollTo({top:0,behavior:"smooth"})}
+
+const uploads=document.getElementById("uploads");
+for(let i=1;i<=5;i++){
+ const label=document.createElement("label");label.className="upload";
+ label.innerHTML=`<span>＋</span><b>Screenshot ${i}</b><em>No file selected</em><input type="file" accept="image/*">`;
+ const input=label.querySelector("input"),em=label.querySelector("em");
+ input.onchange=()=>{em.textContent=input.files[0]?.name||"No file selected";label.style.borderColor="#70f5c4"};
+ uploads.appendChild(label);
+}
+function toast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2600)}
+async function sendSubmission(){
+ const name=document.getElementById("userName").value.trim(), files=[...document.querySelectorAll(".upload input")].map(x=>x.files[0]);
+ if(!name){toast("Please enter your name.");return}
+ if(files.some(x=>!x)){toast("Please select all 5 screenshots.");return}
+ if(!CONFIG.formEndpoint){toast("Add your Formspree endpoint in CONFIG first.");return}
+ const fd=new FormData();fd.append("name",name);files.forEach((f,i)=>fd.append("screenshot_"+(i+1),f));
+ try{const r=await fetch(CONFIG.formEndpoint,{method:"POST",body:fd,headers:{Accept:"application/json"}});
+ if(r.ok){toast("Submission sent successfully ✓")}else toast("Could not send. Check the endpoint.")}
+ catch(e){toast("Network error. Please try again.")}
+}
+</script>
+</body>
+</html>
